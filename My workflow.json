@@ -1,0 +1,238 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "06519d3b-4877-418e-9354-76781fca2112",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65c4ea18-5edc-49b2-9ac4-a2ed1ba8dd0e",
+              "name": "meeting_transcript",
+              "value": "Meeting: Website Redesign Review  The team discussed the website redesign project.  The team will meet again on October 16, 2026, from 10:00 AM to 10:30 AM to review progress.  Priya will prepare the homepage design. Rahul will test the website. The project should be completed by October 20",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "d8bb5300-63ee-4154-92d3-319fed01aa04",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the meeting transcript provided as input. Return a concise meeting summary, all action items, the person responsible for each, deadlines, and a professional follow-up email. If an owner or deadline isn't mentioned, write \"not specified.\" Don't change the AI model yet.{{ $json.meeting_transcript }}\nADDITIONAL TOOL INSTRUCTIONS:\n\n1. GOOGLE TASKS:\nUse the Google Tasks tool to create a separate task\nfor each action item identified in the meeting transcript.\nUse the action item as the task title.\nInclude the responsible person's name when specified.\nSet the due date when a deadline is provided.\nDo not invent missing deadlines.\n2. GOOGLE CALENDAR:\nUse the Google Calendar tool to create a calendar event\nwhen the transcript specifies a follow-up meeting with\na clear date and start time.\nUse the meeting details provided in the transcript.\nDo not invent a date or start time.\nIf essential meeting details are missing, ask for clarification.\n3. GMAIL:\nGenerate a professional follow-up email containing the\nmeeting summary, action items, responsible persons,\nand deadlines.\nIf a valid recipient email address is provided in the\ninput, use the Gmail tool to send the email.\nNever invent a recipient email address.\nIf no recipient email address is provided, ask the user\nfor one instead.\n4. FINAL RESPONSE:\nReturn the meeting summary, action items, responsible\npersons, deadlines, and follow-up email.\nReport whether Google Tasks, Google Calendar, and Gmail\nsuccessfully completed their operations.\nNever claim an operation succeeded unless the tool confirms it.\nIMPORTANT: Actually call the connected tools when their\nconditions are met. Do not merely describe what they would do.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        -16
+      ],
+      "id": "5fb3d478-60c4-4184-bd19-8211d465590f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "My Session"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        208
+      ],
+      "id": "e55fc47f-0f2f-40f3-9937-f84ab1d25d4d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "nedunuriammulu@gmail.com",
+          "mode": "list",
+          "cachedResultName": "nedunuriammulu@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `The start date and time of the follow-up meeting.\nUse the date and time explicitly specified in the\nmeeting notes. Do not invent missing information.\nUse ISO 8601 date-time format with the appropriate\ntime zone`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `The start date and time of the follow-up meeting.\nUse the date and time explicitly specified in the\nmeeting notes. Do not invent missing information.\nUse ISO 8601 date-time format with the appropriate\ntime zone`, 'string') }}",
+        "additionalFields": {
+          "description": "Create a short, meaningful title for the follow-up meeting based on the meeting notes. Include the project name when available"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        208
+      ],
+      "id": "9660ac03-7ea4-4078-b5a1-bf3759f40659",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "w99DQnZfGTnQtB0i",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "nedunuriammulu@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', `Generate a professional email subject based on the meeting topic and action items`, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `Write a professional follow-up email using the meeting notes provided to the AI Agent. Include the meeting summary, action items, responsible persons, deadlines, and upcoming meeting details when available. Do not invent missing information.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        400
+      ],
+      "id": "ed5984e4-9179-4aa9-91ea-61c0f3ee8eb0",
+      "name": "Send a message in Gmail",
+      "webhookId": "2ee093a0-69b9-477a-82c9-161912ca7371",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wnEAh5eyyBm82a9P",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        192
+      ],
+      "id": "5316a881-e2b1-46ff-8476-8754d42329bf",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bfeb492c-ebba-48c8-88d5-f76713d61efb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0498f75837779c68184c25740cb8cc26fc2be4828e41ec226a047fd0f06a1b75"
+  },
+  "nodeGroups": [],
+  "id": "CuZdciTOsJwppGr7",
+  "tags": []
+}
